@@ -1,0 +1,109 @@
+---
+---
+
+<canvas id="dot-canvas" class="fixed inset-0 w-full h-full -z-10"></canvas>
+
+<script is:inline>
+(function () {
+  const canvas = document.getElementById('dot-canvas');
+  const ctx = canvas.getContext('2d');
+
+  const SPACING = 28;
+  const BASE_R  = 1.2;
+  const GLOW_R  = 2.2;
+  const MAX_LIT = 18;
+
+  function randomAccent() {
+    return null;
+  }
+
+  let cols, rows, dots;
+
+  function buildGrid() {
+    cols = Math.ceil(canvas.width  / SPACING) + 1;
+    rows = Math.ceil(canvas.height / SPACING) + 1;
+    const offsetX = (canvas.width  % SPACING) / 2;
+    const offsetY = (canvas.height % SPACING) / 2;
+    dots = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        dots.push({
+          x: offsetX + c * SPACING,
+          y: offsetY + r * SPACING,
+          phase: 0,
+          t: 0,
+          speed: 0,
+        });
+      }
+    }
+  }
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    buildGrid();
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  function triggerRandom() {
+    const dim = dots.filter(d => d.phase === 0);
+    const lit = dots.filter(d => d.phase !== 0).length;
+    if (dim.length && lit < MAX_LIT) {
+      const d = dim[Math.floor(Math.random() * dim.length)];
+      d.phase = 1;
+      d.t = 0;
+      d.speed = 0.012 + Math.random() * 0.012;
+    }
+  }
+
+  setInterval(triggerRandom, 120);
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const d of dots) {
+      if (d.phase === 1) {
+        d.t += d.speed;
+        if (d.t >= 1) { d.t = 1; d.phase = 2; }
+      } else if (d.phase === 2) {
+        d.t += d.speed * 0.3;
+        if (d.t >= 1.3) { d.t = 0; d.phase = 3; }
+      } else if (d.phase === 3) {
+        d.t += d.speed;
+        if (d.t >= 1) { d.t = 0; d.phase = 0; }
+      }
+
+      if (d.phase === 0) {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, BASE_R, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,252,240,0.12)';
+        ctx.fill();
+      } else {
+        let intensity;
+        if      (d.phase === 1) intensity = d.t;
+        else if (d.phase === 2) intensity = 1;
+        else                    intensity = 1 - d.t;
+
+        const r     = BASE_R + (GLOW_R - BASE_R) * intensity;
+        const alpha = 0.18 + 0.82 * intensity;
+        const blur  = 8 * intensity;
+
+        ctx.save();
+        ctx.shadowColor = '#FFFCF0';
+        ctx.shadowBlur  = blur;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,252,240,${alpha.toFixed(2)})`;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+})();
+</script>
