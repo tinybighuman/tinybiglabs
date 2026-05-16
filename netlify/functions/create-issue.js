@@ -56,8 +56,9 @@ export default async (req) => {
   );
 
   if (!ghRes.ok) {
-    console.error('GitHub API error:', await ghRes.text());
-    return json({ error: 'Failed to create issue' }, 502);
+    const ghBody = await ghRes.text();
+    console.error(`GitHub API error ${ghRes.status}:`, ghBody);
+    return json({ error: `GitHub API returned ${ghRes.status}` }, 502);
   }
 
   const issue = await ghRes.json();
