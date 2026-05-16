@@ -1,23 +1,11 @@
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://tinybighuman.github.io';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
 export default async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
-
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405);
   }
@@ -48,7 +36,6 @@ export default async (req) => {
   bodyParts.push(
     `## Details\n\n- **Type:** ${type === 'bug' ? 'Bug report' : 'Feature request'}${email ? `\n- **Email:** ${email}` : ''}\n- **Source:** Beanie feedback form`
   );
-  const issueBody = bodyParts.join('\n\n');
 
   const ghRes = await fetch(
     `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues`,
@@ -60,7 +47,11 @@ export default async (req) => {
         'X-GitHub-Api-Version': '2022-11-28',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ title: title.slice(0, 100), body: issueBody, labels: [label] }),
+      body: JSON.stringify({
+        title: title.slice(0, 100),
+        body: bodyParts.join('\n\n'),
+        labels: [label],
+      }),
     }
   );
 

@@ -1,0 +1,407 @@
+---
+import '../../styles/global.css';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Share feedback about Beanie — Tiny Big Labs" />
+    <title>Feedback · Beanie · Tiny Big Labs</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+  </head>
+
+  <body>
+    <main>
+      <article>
+        <header>
+          <a href="/" class="wordmark">tiny big labs</a>
+          <h1>Beanie Feedback</h1>
+          <p class="meta">Help make Beanie better</p>
+        </header>
+
+        <section>
+          <h2>Send feedback</h2>
+          <p>Found a bug or have a feature idea? Let me know.</p>
+
+          <form class="feedback-form" id="feedback-form" novalidate>
+
+            <div class="field">
+              <label>Type</label>
+              <div class="radio-group" role="radiogroup" aria-label="Feedback type">
+                <label class="radio-label">
+                  <input type="radio" name="type" value="bug" required />
+                  Bug report
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="type" value="enhancement" />
+                  Feature request
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="title">Title <span aria-hidden="true">*</span></label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                placeholder="Brief summary"
+                maxlength="100"
+                required
+                autocomplete="off"
+              />
+              <span class="char-count" id="title-count" aria-live="polite">0 / 100</span>
+            </div>
+
+            <div class="field">
+              <label for="description">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                placeholder="Steps to reproduce, expected vs. actual behaviour, or details about your idea…"
+                rows="5"
+              ></textarea>
+            </div>
+
+            <div class="field">
+              <label for="email">Email <span class="optional">(optional — only if you'd like a reply)</span></label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+              />
+            </div>
+
+            <!-- honeypot: bots fill this, humans don't see it -->
+            <div class="honeypot" aria-hidden="true">
+              <label for="website">Website</label>
+              <input type="text" id="website" name="_honeypot" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div
+              class="status"
+              id="form-status"
+              role="status"
+              aria-live="polite"
+              aria-atomic="true"
+            ></div>
+
+            <button type="submit" id="submit-btn">Send feedback</button>
+          </form>
+        </section>
+
+        <footer>
+          <p>Tiny Big Labs<br />London, United Kingdom</p>
+        </footer>
+      </article>
+    </main>
+  </body>
+</html>
+
+<script is:inline>
+  const form = document.getElementById('feedback-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const statusEl = document.getElementById('form-status');
+  const titleInput = document.getElementById('title');
+  const titleCount = document.getElementById('title-count');
+
+  titleInput.addEventListener('input', () => {
+    const len = titleInput.value.length;
+    titleCount.textContent = `${len} / 100`;
+    titleCount.className = 'char-count' + (len >= 100 ? ' at-limit' : len >= 80 ? ' near-limit' : '');
+  });
+
+  function showStatus(message, type) {
+    statusEl.textContent = message;
+    statusEl.className = `status ${type}`;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const type = form.querySelector('input[name="type"]:checked')?.value;
+    const title = titleInput.value.trim();
+
+    if (!type) {
+      showStatus('Please select a feedback type.', 'error');
+      return;
+    }
+    if (!title) {
+      showStatus('Please enter a title.', 'error');
+      titleInput.focus();
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    statusEl.className = 'status';
+
+    try {
+      const res = await fetch('/api/create-issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type,
+          title,
+          description: document.getElementById('description').value.trim(),
+          email: document.getElementById('email').value.trim(),
+          _honeypot: document.getElementById('website').value,
+        }),
+      });
+
+      if (res.ok) {
+        showStatus('Thanks — your feedback has been received.', 'success');
+        form.reset();
+        titleCount.textContent = '0 / 100';
+        titleCount.className = 'char-count';
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showStatus(data.error || 'Something went wrong. Please try again.', 'error');
+      }
+    } catch {
+      showStatus('Could not reach the server. Check your connection and try again.', 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send feedback';
+    }
+  });
+</script>
+
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 4rem 1.5rem;
+    color: #e0e0e0;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+
+  main {
+    width: 100%;
+    max-width: 680px;
+  }
+
+  article {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #222;
+  }
+
+  .wordmark {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: #666;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+    transition: color 0.2s;
+  }
+
+  .wordmark:hover { color: #aaa; }
+
+  h1 {
+    margin: 0;
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 2.25rem;
+    font-weight: 400;
+    color: #fff;
+    line-height: 1.2;
+  }
+
+  .meta {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #777;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #bbb;
+  }
+
+  a {
+    color: #aaa;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.2s;
+  }
+
+  a:hover { color: #fff; }
+
+  .feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  label {
+    font-size: 0.8rem;
+    color: #666;
+    letter-spacing: 0.02em;
+  }
+
+  .optional { color: #555; }
+
+  .radio-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .radio-label {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: #bbb;
+    cursor: pointer;
+  }
+
+  .radio-label input[type="radio"] {
+    accent-color: #777;
+    width: 1rem;
+    height: 1rem;
+    cursor: pointer;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-family: inherit;
+    padding: 0.6rem 0.85rem;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus {
+    border-color: #555;
+  }
+
+  input::placeholder,
+  textarea::placeholder { color: #444; }
+
+  .char-count {
+    font-size: 0.75rem;
+    color: #444;
+    text-align: right;
+  }
+
+  .char-count.near-limit { color: #888; }
+  .char-count.at-limit { color: #c0392b; }
+
+  .honeypot {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  button[type="submit"] {
+    align-self: flex-start;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #ccc;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: inherit;
+    padding: 0.55rem 1.25rem;
+    transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
+  }
+
+  button[type="submit"]:hover:not(:disabled) {
+    background: #222;
+    border-color: #555;
+    color: #fff;
+  }
+
+  button[type="submit"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .status {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    padding: 0.6rem 0.85rem;
+    border-radius: 6px;
+    display: none;
+  }
+
+  .status.success {
+    display: block;
+    background: #0d1f0d;
+    border: 1px solid #1a3a1a;
+    color: #6dbf6d;
+  }
+
+  .status.error {
+    display: block;
+    background: #1f0d0d;
+    border: 1px solid #3a1a1a;
+    color: #bf6d6d;
+  }
+
+  footer {
+    padding-top: 2rem;
+    border-top: 1px solid #222;
+  }
+
+  footer p {
+    font-size: 0.85rem;
+    color: #444;
+    line-height: 1.6;
+  }
+</style>
