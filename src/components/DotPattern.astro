@@ -13,8 +13,11 @@
   const GLOW_R  = 2.2;
   const MAX_LIT = 18;
 
+  const ORANGE = '#C4571A';
+  const ORANGE_CHANCE = 0.15;
+
   function randomAccent() {
-    return null;
+    return Math.random() < ORANGE_CHANCE ? ORANGE : null;
   }
 
   let cols, rows, dots;
@@ -33,6 +36,7 @@
           phase: 0,
           t: 0,
           speed: 0,
+          accent: null,
         });
       }
     }
@@ -55,6 +59,7 @@
       d.phase = 1;
       d.t = 0;
       d.speed = 0.012 + Math.random() * 0.012;
+      d.accent = randomAccent();
     }
   }
 
@@ -90,12 +95,15 @@
         const alpha = 0.18 + 0.82 * intensity;
         const blur  = 8 * intensity;
 
+        const color = d.accent || '#FFFCF0';
+        const fillRgb = d.accent ? '196,87,26' : '255,252,240';
+
         ctx.save();
-        ctx.shadowColor = '#FFFCF0';
+        ctx.shadowColor = color;
         ctx.shadowBlur  = blur;
         ctx.beginPath();
         ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,252,240,${alpha.toFixed(2)})`;
+        ctx.fillStyle = `rgba(${fillRgb},${alpha.toFixed(2)})`;
         ctx.fill();
         ctx.restore();
       }

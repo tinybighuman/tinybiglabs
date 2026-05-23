@@ -1,35 +1,21 @@
 ---
-import '../styles/global.css';
+import Base from '../layouts/Base.astro';
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Beanie — Your Coffee Log. Track every cup, discover new beans." />
-    <title>Beanie · Your Coffee Log</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
-  </head>
-
-  <body>
-    <main>
-      <img src="/beanie-icon.png" alt="Beanie app icon" class="app-icon" width="512" height="512" />
-      <h1>Beanie</h1>
-      <p class="tagline">Your coffee log</p>
-      <p class="description">Track every cup, discover new flavours, and share your favourites.</p>
-      <a
-        href="https://apps.apple.com/app/apple-store/id6761773356?pt=128751837&ct=Universal%20Link&mt=8"
-        class="badge-link"
-      >
-        <img src="/app-store-badge.svg" alt="Download on the App Store" class="badge" />
-      </a>
-    </main>
-  </body>
-</html>
+<Base title="Beanie · Your Coffee Log" description="Beanie — Your Coffee Log. Track every cup, discover new beans.">
+  <main>
+    <img src="/beanie-icon.png" alt="Beanie app icon" class="app-icon" width="512" height="512" />
+    <h1>Beanie</h1>
+    <p class="tagline">Your coffee log</p>
+    <p class="description">Track every cup, discover new flavours, and share your favourites.</p>
+    <a
+      href="https://apps.apple.com/app/apple-store/id6761773356?pt=128751837&ct=Universal%20Link&mt=8"
+      class="badge-link"
+    >
+      <img src="/app-store-badge.svg" alt="Download on the App Store" class="badge" />
+    </a>
+  </main>
+</Base>
 
 <style>
   body {
@@ -40,7 +26,6 @@ import '../styles/global.css';
     overflow-y: auto;
     overflow-x: hidden;
     padding: 3rem 1.5rem;
-    font-family: system-ui, -apple-system, sans-serif;
   }
 
   main {
@@ -60,10 +45,11 @@ import '../styles/global.css';
 
   h1 {
     margin: 0 0 0.35rem;
-    font-family: 'Instrument Serif', Georgia, serif;
+    font-family: 'Fraunces', Georgia, serif;
     font-style: italic;
     font-size: 2.5rem;
-    font-weight: 400;
+    font-weight: 300;
+    font-optical-sizing: auto;
     color: #fff;
     line-height: 1.1;
   }

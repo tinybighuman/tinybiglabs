@@ -1,0 +1,29 @@
+---
+import Base from './Base.astro';
+import '../styles/content.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  heading: string;
+  subheading?: string;
+}
+
+const { title, description = '', heading, subheading } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <main>
+    <article>
+      <header>
+        <a href="/" class="wordmark">tiny big labs</a>
+        <h1>{heading}</h1>
+        {subheading && <p class="meta">{subheading}</p>}
+      </header>
+      <slot />
+      <footer>
+        <p>Tiny Big Labs<br />London, United Kingdom</p>
+      </footer>
+    </article>
+  </main>
+</Base>
