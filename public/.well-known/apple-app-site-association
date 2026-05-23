@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["52ZU3LJ78A.com.tinybiglabs.Beanie"],
+        "components": [
+          { "/": "/bean*" }
+        ]
+      }
+    ]
+  }
+}
