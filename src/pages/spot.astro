@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Beanie · Your Coffee Log" description="Beanie — Your Coffee Log. Track every cup, discover new flavours, and share your favourites.">
+  <main>
+    <img src="/beanie-icon.png" alt="Beanie app icon" class="app-icon" width="512" height="512" />
+    <h1>Beanie</h1>
+    <p class="tagline">Your coffee log</p>
+    <p class="description">Track every cup, discover new flavours, and share your favourites.</p>
+    <a
+      href="https://apps.apple.com/app/apple-store/id6761773356?pt=128751837&ct=Universal%20Link&mt=8"
+      class="badge-link"
+    >
+      <img src="/app-store-badge.svg" alt="Download on the App Store" class="badge" />
+    </a>
+  </main>
+</Base>
+
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 3rem 1.5rem;
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+  }
+
+  .app-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 26px;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    margin: 0 0 0.35rem;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 2.5rem;
+    font-weight: 300;
+    font-optical-sizing: auto;
+    color: #fff;
+    line-height: 1.1;
+  }
+
+  .tagline {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .description {
+    margin: 0 0 2rem;
+    font-size: 1rem;
+    line-height: 1.65;
+    color: #888;
+    max-width: 280px;
+  }
+
+  .badge-link {
+    display: inline-block;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+  }
+
+  .badge-link:hover {
+    opacity: 1;
+  }
+
+  .badge {
+    display: block;
+    height: 44px;
+    width: auto;
+  }
+</style>
