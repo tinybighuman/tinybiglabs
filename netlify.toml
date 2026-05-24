@@ -3,12 +3,6 @@
   publish = "dist"
   functions = "netlify/functions"
 
-[[redirects]]
-  from = "https://beanie.tinybiglabs.com/*"
-  to = "/:splat"
-  status = 200
-  force = true
-
 [build.environment]
   NODE_VERSION = "20"
 
