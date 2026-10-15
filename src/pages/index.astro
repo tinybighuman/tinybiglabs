@@ -7,13 +7,25 @@ import DotPattern from '../components/DotPattern.astro';
   <DotPattern />
 
   <main>
-    <div class="title">
-      <p>tiny</p>
-      <p><span class="gradient-text">big</span></p>
-      <p>labs</p>
-    </div>
+    <h1 class="title">
+      <span class="tiny">tiny</span>
+      <span class="big">big</span>
+      <span class="labs">labs</span>
+    </h1>
   </main>
 </Base>
+
+<script>
+  // fire a background ripple from "labs" as it starts to flicker (71% into its 7s cycle)
+  const labs = document.querySelector<HTMLElement>('.labs')!;
+  const pulse = () => {
+    const r = labs.getBoundingClientRect();
+    window.dispatchEvent(new CustomEvent('bg-pulse', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 } }));
+  };
+  const schedule = () => setTimeout(pulse, 7000 * 0.71);
+  schedule();
+  labs.addEventListener('animationiteration', schedule);
+</script>
 
 <style>
   body {
@@ -30,44 +42,33 @@ import DotPattern from '../components/DotPattern.astro';
   }
 
   .title {
-    text-align: center;
-    font-size: 9vmin;
-    line-height: 8.5vmin;
-    font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
-    font-weight: 300;
-    font-optical-sizing: auto;
+    margin: 0;
+    white-space: nowrap;
+    word-spacing: -0.3em;
+    font-size: 8vmin;
+    font-family: 'iA Writer Quattro V', 'DM Mono', monospace;
+    font-weight: 400;
     user-select: none;
     -webkit-user-select: none;
   }
 
-  .title p {
-    margin: 0;
-  }
-
-  .title p:nth-child(1) {
-    transform: scaleX(0.9);
+  .tiny {
     color: #aaa;
-    font-weight: 300;
+    font-weight: 400;
   }
 
-  .title p:nth-child(2) {
-    transform: scaleX(1.15);
-    position: relative;
-    color: transparent;
-    text-shadow: 0 1vmin 4vmin rgba(255,255,255,0.15);
-  }
-
-  .gradient-text {
+  .big {
+    font-weight: 550;
     background-image: linear-gradient(to top, #fff, #bbb);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  .title p:nth-child(3) {
+  .labs {
+    display: inline-block;
+    font-weight: 700;
     color: white;
-    transform: scaleX(1.4);
     text-shadow:
       0 0 0.5vmin #fff,
       0 0.5vmin 1.5vmin #faa,

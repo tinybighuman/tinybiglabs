@@ -1,117 +1,138 @@
 ---
 ---
 
-<canvas id="dot-canvas" class="fixed inset-0 w-full h-full -z-10"></canvas>
+<canvas id="dot-canvas" class="fixed inset-0 w-full h-full -z-10" aria-hidden="true"></canvas>
 
 <script is:inline>
 (function () {
   const canvas = document.getElementById('dot-canvas');
   const ctx = canvas.getContext('2d');
 
-  const SPACING = 28;
-  const BASE_R  = 1.2;
-  const GLOW_R  = 2.2;
-  const MAX_LIT = 18;
+  const CHARS     = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const FONT_SIZE = 11;
+  const CELL_W    = 7.2;   // DM Mono advance at 11px
+  const CELL_H    = 15;
 
-  const ORANGE = '#C4571A';
-  const ORANGE_CHANCE = 0.15;
+  const AMBIENT     = 0.05; // faint drifting mist at rest
+  const HOVER_R     = 110;  // px — reveal radius around cursor
+  const HALF_LIFE   = 1.2;  // s — how long revealed text lingers
+  const WAVE_SPEED  = 420;  // px/s
+  const WAVE_MAX    = 520;  // px — ripple has fully faded by here
+  const WAVE_W      = 26;   // px — ring thickness
+  const ACCENT      = [196, 87, 26];  // #C4571A
+  const BASE        = [150, 146, 138];
 
-  function randomAccent() {
-    return Math.random() < ORANGE_CHANCE ? ORANGE : null;
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W, H, cols, rows, chars, energy, grain;
+  let waves = [];
+  let mouse = null;
+
+  function rnd() { return CHARS[(Math.random() * CHARS.length) | 0]; }
+
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cols = Math.ceil(W / CELL_W);
+    rows = Math.ceil(H / CELL_H);
+    const n = cols * rows;
+    chars  = Array.from({ length: n }, rnd);
+    energy = new Float32Array(n);
+    grain  = Float32Array.from({ length: n }, () => 0.35 + Math.random() * 0.65);
   }
 
-  let cols, rows, dots;
+  // cheap smooth 2D field for the misty, patchy look
+  function mist(x, y, t) {
+    const a = Math.sin(x * 0.011 + t * 0.21) * Math.sin(y * 0.017 - t * 0.17);
+    const b = Math.sin((x + y) * 0.006 - t * 0.12) * Math.sin((x - y) * 0.009 + t * 0.08);
+    return Math.max(0, (a + b) * 0.5 + 0.25); // ~0..1, mostly low
+  }
 
-  function buildGrid() {
-    cols = Math.ceil(canvas.width  / SPACING) + 1;
-    rows = Math.ceil(canvas.height / SPACING) + 1;
-    const offsetX = (canvas.width  % SPACING) / 2;
-    const offsetY = (canvas.height % SPACING) / 2;
-    dots = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        dots.push({
-          x: offsetX + c * SPACING,
-          y: offsetY + r * SPACING,
-          phase: 0,
-          t: 0,
-          speed: 0,
-          accent: null,
-        });
+  function deposit(cx, cy, radius, strength) {
+    const c0 = Math.max(0, ((cx - radius) / CELL_W) | 0);
+    const c1 = Math.min(cols - 1, Math.ceil((cx + radius) / CELL_W));
+    const r0 = Math.max(0, ((cy - radius) / CELL_H) | 0);
+    const r1 = Math.min(rows - 1, Math.ceil((cy + radius) / CELL_H));
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        const d = Math.hypot(c * CELL_W - cx, r * CELL_H - cy);
+        if (d > radius) continue;
+        const k = 1 - d / radius;
+        const i = r * cols + c;
+        energy[i] = Math.max(energy[i], k * k * strength);
       }
     }
   }
 
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-    buildGrid();
+  // ripple is drawn on top each frame and never written into `energy`, so it leaves no trail
+  function ripple(x, y) {
+    let v = 0;
+    for (const w of waves) {
+      const off = Math.hypot(x - w.x, y - w.y) - w.r;
+      if (Math.abs(off) > WAVE_W * 2) continue;
+      const fade = 1 - w.r / WAVE_MAX;
+      v = Math.max(v, Math.exp(-(off * off) / (2 * (WAVE_W / 2) ** 2)) * fade);
+    }
+    return v;
+  }
+
+  window.addEventListener('pointermove', e => { mouse = { x: e.clientX, y: e.clientY }; });
+  document.addEventListener('pointerleave', () => { mouse = null; });
+  window.addEventListener('pointerdown', e => {
+    waves.push({ x: e.clientX, y: e.clientY, r: 0 });
+  });
+  window.addEventListener('bg-pulse', e => {
+    waves.push({ x: e.detail.x, y: e.detail.y, r: 0 });
+  });
+
+  let last = performance.now();
+
+  function frame(ts) {
+    const dt = Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    const t = ts / 1000;
+
+    const decay = Math.pow(0.5, dt / HALF_LIFE);
+    for (let i = 0; i < energy.length; i++) energy[i] *= decay;
+
+    if (mouse) deposit(mouse.x, mouse.y, HOVER_R, 0.9);
+
+    waves = waves.filter(w => (w.r += WAVE_SPEED * dt) < WAVE_MAX);
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.font = `400 ${FONT_SIZE}px "DM Mono", monospace`;
+    ctx.textBaseline = 'top';
+
+    for (let r = 0; r < rows; r++) {
+      const y = r * CELL_H;
+      for (let c = 0; c < cols; c++) {
+        const i = r * cols + c;
+        const x = c * CELL_W;
+        const e = waves.length ? Math.max(energy[i], ripple(x, y)) : energy[i];
+        const m = mist(x, y, t);
+        const alpha = (AMBIENT * m + e * (0.35 + 0.65 * m)) * grain[i];
+        if (alpha < 0.012) continue;
+
+        if (e > 0.15 && Math.random() < e * dt * 6) chars[i] = rnd();
+
+        const k = Math.min(1, Math.max(0, (e - 0.35) / 0.5));
+        const R = BASE[0] + (ACCENT[0] - BASE[0]) * k;
+        const G = BASE[1] + (ACCENT[1] - BASE[1]) * k;
+        const B = BASE[2] + (ACCENT[2] - BASE[2]) * k;
+        ctx.fillStyle = `rgba(${R | 0},${G | 0},${B | 0},${Math.min(1, alpha).toFixed(3)})`;
+        ctx.fillText(chars[i], x, y);
+      }
+    }
+
+    if (!reduceMotion) requestAnimationFrame(frame);
   }
 
   resize();
   window.addEventListener('resize', resize);
-
-  function triggerRandom() {
-    const dim = dots.filter(d => d.phase === 0);
-    const lit = dots.filter(d => d.phase !== 0).length;
-    if (dim.length && lit < MAX_LIT) {
-      const d = dim[Math.floor(Math.random() * dim.length)];
-      d.phase = 1;
-      d.t = 0;
-      d.speed = 0.012 + Math.random() * 0.012;
-      d.accent = randomAccent();
-    }
-  }
-
-  setInterval(triggerRandom, 120);
-
-  function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (const d of dots) {
-      if (d.phase === 1) {
-        d.t += d.speed;
-        if (d.t >= 1) { d.t = 1; d.phase = 2; }
-      } else if (d.phase === 2) {
-        d.t += d.speed * 0.3;
-        if (d.t >= 1.3) { d.t = 0; d.phase = 3; }
-      } else if (d.phase === 3) {
-        d.t += d.speed;
-        if (d.t >= 1) { d.t = 0; d.phase = 0; }
-      }
-
-      if (d.phase === 0) {
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, BASE_R, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,252,240,0.12)';
-        ctx.fill();
-      } else {
-        let intensity;
-        if      (d.phase === 1) intensity = d.t;
-        else if (d.phase === 2) intensity = 1;
-        else                    intensity = 1 - d.t;
-
-        const r     = BASE_R + (GLOW_R - BASE_R) * intensity;
-        const alpha = 0.18 + 0.82 * intensity;
-        const blur  = 8 * intensity;
-
-        const color = d.accent || '#FFFCF0';
-        const fillRgb = d.accent ? '196,87,26' : '255,252,240';
-
-        ctx.save();
-        ctx.shadowColor = color;
-        ctx.shadowBlur  = blur;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${fillRgb},${alpha.toFixed(2)})`;
-        ctx.fill();
-        ctx.restore();
-      }
-    }
-
-    requestAnimationFrame(draw);
-  }
-
-  draw();
+  document.fonts.ready.then(() => requestAnimationFrame(frame));
 })();
 </script>

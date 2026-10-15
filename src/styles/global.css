@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'iA Writer Quattro V';
+  src: url('/fonts/iAWriterQuattroV.ttf') format('truetype');
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html {

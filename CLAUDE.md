@@ -51,7 +51,8 @@ Fonts are loaded once in `Base.astro` and apply globally.
 
 | Role | Font | Weight | Style |
 |---|---|---|---|
-| Headings, wordmarks | Fraunces | 300 | italic |
+| Logo / wordmarks | iA Writer Quattro V (self-hosted, `public/fonts/`) | 400 | normal |
+| Headings | Fraunces | 300 | italic |
 | Body, UI text | DM Mono | 300 / 400 | normal |
 
 - `font-optical-sizing: auto` on all Fraunces headings — important for display sizes
@@ -76,12 +77,14 @@ Warm dark theme — derived from algoproducts' cream `#F7F5F0` inverted to dark.
 
 ## Dot pattern (DotPattern.astro)
 
-Canvas animation on the landing page. Key constants to tweak:
+Canvas text-mist background on the landing page: a fixed grid of DM Mono characters, near-invisible at rest. The cursor reveals a fading trail; a click/tap sends an expanding ring. Freshly revealed characters tint orange and scramble. Key constants to tweak:
 
-- `SPACING` — grid density (px between dots)
-- `MAX_LIT` — max simultaneously glowing dots
-- `ORANGE_CHANCE` — probability (0–1) a triggered dot glows orange instead of warm white
-- `ORANGE` — accent colour (`#C4571A`)
+- `FONT_SIZE` / `CELL_W` / `CELL_H` — character size and grid density
+- `AMBIENT` — visibility of the resting mist
+- `HOVER_R` — cursor reveal radius
+- `HALF_LIFE` — how long revealed text lingers (seconds)
+- `WAVE_SPEED` / `WAVE_MAX` — click ring speed and reach
+- `ACCENT` — accent colour (`#C4571A`)
 
 ## Netlify functions
 
