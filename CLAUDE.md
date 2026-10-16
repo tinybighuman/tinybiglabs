@@ -69,7 +69,7 @@ Warm dark theme — derived from algoproducts' cream `#F7F5F0` inverted to dark.
 | Input/card background | `#1c1a17` | Form inputs |
 | Button background | `#201e1b` | Buttons |
 | Button hover | `#2a2724` | Button :hover |
-| Accent orange | `#C4571A` | Dot pattern accent glow |
+| Accent purple | `#8B5CF6` | Background text accent |
 | Body text | `#e0e0e0` | General prose |
 | Muted text | `#bbb` | Paragraphs |
 | Dimmed text | `#777` | Section labels (h2) |
@@ -77,14 +77,19 @@ Warm dark theme — derived from algoproducts' cream `#F7F5F0` inverted to dark.
 
 ## Dot pattern (DotPattern.astro)
 
-Canvas text-mist background on the landing page: a fixed grid of DM Mono characters, near-invisible at rest. The cursor reveals a fading trail; a click/tap sends an expanding ring. Freshly revealed characters tint orange and scramble. Key constants to tweak:
+Canvas text-mist background on the landing page: a fixed grid of DM Mono characters, near-invisible at rest. The cursor reveals a fading trail; a click/tap sends an expanding ring. Freshly revealed characters tint purple and scramble. Key constants to tweak:
 
 - `FONT_SIZE` / `CELL_W` / `CELL_H` — character size and grid density
-- `AMBIENT` — visibility of the resting mist
+- `AMBIENT` — brightness of the resting vapour
+- `VAPOUR_RISE` / `VAPOUR_CURL` — how fast the vapour rises and how much it folds and curls
 - `HOVER_R` — cursor reveal radius
 - `HALF_LIFE` — how long revealed text lingers (seconds)
 - `WAVE_SPEED` / `WAVE_MAX` — click ring speed and reach
-- `ACCENT` — accent colour (`#C4571A`)
+- `WAVE_GLOW` / `WAVE_TINT` — ripple brightness and how strongly it takes the accent colour
+- `SWIRL` / `RISE` — how much the revealed trail curls and drifts upward (the smoke feel)
+- `WARP` — how far ripple and hover edges wobble away from a perfect circle
+- `WAKE` — faint smoke a ripple leaves behind (0 = clean ring)
+- `ACCENT` — accent colour (`#8B5CF6`)
 
 ## Netlify functions
 

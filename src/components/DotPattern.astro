@@ -13,18 +13,27 @@
   const CELL_W    = 7.2;   // DM Mono advance at 11px
   const CELL_H    = 15;
 
-  const AMBIENT     = 0.09; // faint drifting mist at rest
+  const AMBIENT     = 0.16; // brightness of the resting vapour
+  const VAPOUR_RISE = 22;   // px/s — vapour drifts upward
+  const VAPOUR_CURL = 70;   // px — how strongly the vapour folds and curls
   const HOVER_R     = 110;  // px — reveal radius around cursor
   const HALF_LIFE   = 1.2;  // s — how long revealed text lingers
-  const WAVE_SPEED  = 420;  // px/s
+  const WAVE_SPEED  = 300;  // px/s
+  const WAVE_GLOW   = 0.85; // ripple brightness, independent of the vapour underneath
+  const WAVE_TINT   = 1.6;  // how quickly ripple characters reach full accent colour
   const WAVE_MAX    = 520;  // px — ripple has fully faded by here
   const WAVE_W      = 26;   // px — ring thickness
-  const ACCENT      = [196, 87, 26];  // #C4571A
+  const WAKE        = 0.2;  // faint smoke a ripple leaves behind (0 = none)
+  const SWIRL       = 2600; // how hard the trail curls (~25 px/s)
+  const RISE        = 12;   // px/s — trail drifts upward like smoke
+  const WARP        = 38;   // px — how far ripple / hover edges wobble
+  const ACCENT      = [139, 92, 246]; // #8B5CF6
   const BASE        = [150, 146, 138];
 
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  let W, H, cols, rows, chars, energy, grain;
+  let W, H, cols, rows, chars, energy, spare, grain;
+  let colA, rowB; // per-frame swirl terms, separable by column / row
   let waves = [];
   let mouse = null;
 
@@ -42,37 +51,92 @@
     const n = cols * rows;
     chars  = Array.from({ length: n }, rnd);
     energy = new Float32Array(n);
+    spare  = new Float32Array(n);
     grain  = Float32Array.from({ length: n }, () => 0.35 + Math.random() * 0.65);
+    colA = new Float32Array(cols * 4);
+    rowB = new Float32Array(rows * 4);
   }
 
-  // cheap smooth 2D field for the misty, patchy look
+  // signed smooth noise in -1..1 that bends ripple and hover edges
+  function warp(x, y, t) {
+    return Math.sin(x * 0.023 + t * 1.1) * Math.cos(y * 0.019 - t * 0.9) * 0.6
+         + Math.sin((x + y) * 0.011 - t * 0.7) * 0.4;
+  }
+
+  // Carry the trail along a divergence-free swirl (curl of a moving stream function),
+  // sampling backwards with bilinear interpolation: the smoke look.
+  // psi = sin(a1 x + .25t) cos(b1 y - .2t) + .6 sin(a2 x - .3t + 1.3) cos(b2 y + .35t)
+  function advect(dt, t) {
+    const a1 = 0.009, b1 = 0.011, a2 = 0.017, b2 = 0.014;
+    for (let c = 0; c < cols; c++) {
+      const x = c * CELL_W, A1 = a1 * x + 0.25 * t, A2 = a2 * x - 0.3 * t + 1.3;
+      colA[c * 4] = Math.sin(A1); colA[c * 4 + 1] = Math.cos(A1);
+      colA[c * 4 + 2] = Math.sin(A2); colA[c * 4 + 3] = Math.cos(A2);
+    }
+    for (let r = 0; r < rows; r++) {
+      const y = r * CELL_H, B1 = b1 * y - 0.2 * t, B2 = b2 * y + 0.35 * t;
+      rowB[r * 4] = Math.sin(B1); rowB[r * 4 + 1] = Math.cos(B1);
+      rowB[r * 4 + 2] = Math.sin(B2); rowB[r * 4 + 3] = Math.cos(B2);
+    }
+    for (let r = 0; r < rows; r++) {
+      const sB1 = rowB[r * 4], cB1 = rowB[r * 4 + 1], sB2 = rowB[r * 4 + 2], cB2 = rowB[r * 4 + 3];
+      for (let c = 0; c < cols; c++) {
+        const sA1 = colA[c * 4], cA1 = colA[c * 4 + 1], sA2 = colA[c * 4 + 2], cA2 = colA[c * 4 + 3];
+        const dPx = a1 * cA1 * cB1 + 0.6 * a2 * cA2 * cB2;
+        const dPy = -b1 * sA1 * sB1 - 0.6 * b2 * sA2 * sB2;
+        const vx = SWIRL * dPy;
+        const vy = -SWIRL * dPx - RISE;
+        const sx = c - (vx * dt) / CELL_W;
+        const sy = r - (vy * dt) / CELL_H;
+        const x0 = Math.floor(sx), y0 = Math.floor(sy);
+        let v = 0;
+        if (x0 >= 0 && y0 >= 0 && x0 < cols - 1 && y0 < rows - 1) {
+          const fx = sx - x0, fy = sy - y0, j = y0 * cols + x0;
+          v = (energy[j] * (1 - fx) + energy[j + 1] * fx) * (1 - fy)
+            + (energy[j + cols] * (1 - fx) + energy[j + cols + 1] * fx) * fy;
+        }
+        spare[r * cols + c] = v;
+      }
+    }
+    [energy, spare] = [spare, energy];
+  }
+
+  // Rising vapour: a wave field whose coordinates are pushed around by a second moving
+  // field (domain warping), which turns regular sine blobs into curling wisps. 0..1, mostly low.
   function mist(x, y, t) {
-    const a = Math.sin(x * 0.011 + t * 0.21) * Math.sin(y * 0.017 - t * 0.17);
-    const b = Math.sin((x + y) * 0.006 - t * 0.12) * Math.sin((x - y) * 0.009 + t * 0.08);
-    return Math.max(0, (a + b) * 0.5 + 0.25); // ~0..1, mostly low
+    y += t * VAPOUR_RISE;
+    const qx = Math.sin(x * 0.006 + t * 0.23) + Math.sin(y * 0.009 - t * 0.31) * 0.6;
+    const qy = Math.cos(y * 0.007 - t * 0.19) + Math.cos(x * 0.011 + t * 0.27) * 0.6;
+    const u = x + qx * VAPOUR_CURL, v = y + qy * VAPOUR_CURL;
+    const n = Math.sin(u * 0.012 + t * 0.15) * Math.sin(v * 0.015 - t * 0.11)
+            + Math.sin((u + v) * 0.02 + t * 0.4) * Math.sin((u - v) * 0.017 - t * 0.3) * 0.5;
+    const m = Math.max(0, n * 0.55 + 0.2);
+    return Math.min(1, m * Math.sqrt(m) * 1.6); // steeper falloff: defined wisps, dark gaps
   }
 
-  function deposit(cx, cy, radius, strength) {
+  function deposit(cx, cy, radius, strength, t) {
     const c0 = Math.max(0, ((cx - radius) / CELL_W) | 0);
     const c1 = Math.min(cols - 1, Math.ceil((cx + radius) / CELL_W));
     const r0 = Math.max(0, ((cy - radius) / CELL_H) | 0);
     const r1 = Math.min(rows - 1, Math.ceil((cy + radius) / CELL_H));
     for (let r = r0; r <= r1; r++) {
       for (let c = c0; c <= c1; c++) {
-        const d = Math.hypot(c * CELL_W - cx, r * CELL_H - cy);
+        const x = c * CELL_W, y = r * CELL_H;
+        const d = Math.hypot(x - cx, y - cy) + warp(x, y, t) * WARP * 0.6;
         if (d > radius) continue;
-        const k = 1 - d / radius;
+        const k = Math.min(1, 1 - d / radius);
         const i = r * cols + c;
         energy[i] = Math.max(energy[i], k * k * strength);
       }
     }
   }
 
-  // ripple is drawn on top each frame and never written into `energy`, so it leaves no trail
-  function ripple(x, y) {
+  // ripple is drawn on top each frame; only a faint WAKE of it goes into `energy`
+  function ripple(x, y, t) {
     let v = 0;
+    const bend = warp(x, y, t) * WARP;
     for (const w of waves) {
-      const off = Math.hypot(x - w.x, y - w.y) - w.r;
+      const off = Math.hypot(x - w.x, y - w.y) - w.r + bend * (0.3 + w.r / WAVE_MAX);
       if (Math.abs(off) > WAVE_W * 2) continue;
       const fade = 1 - w.r / WAVE_MAX;
       v = Math.max(v, Math.exp(-(off * off) / (2 * (WAVE_W / 2) ** 2)) * fade);
@@ -97,9 +161,11 @@
     const t = ts / 1000;
 
     const decay = Math.pow(0.5, dt / HALF_LIFE);
-    for (let i = 0; i < energy.length; i++) energy[i] *= decay;
+    let live = false;
+    for (let i = 0; i < energy.length; i++) if ((energy[i] *= decay) > 0.004) live = true;
+    if (live) advect(dt, t);
 
-    if (mouse) deposit(mouse.x, mouse.y, HOVER_R, 0.9);
+    if (mouse) deposit(mouse.x, mouse.y, HOVER_R, 0.9, t);
 
     waves = waves.filter(w => (w.r += WAVE_SPEED * dt) < WAVE_MAX);
 
@@ -107,26 +173,44 @@
     ctx.font = `400 ${FONT_SIZE}px "DM Mono", monospace`;
     ctx.textBaseline = 'top';
 
+    // set colour only when it changes and vary globalAlpha; a new rgba string per character costs ~1/3 of the frame
+    const baseStyle = `rgb(${BASE[0]},${BASE[1]},${BASE[2]})`;
+    let style = baseStyle;
+    ctx.fillStyle = baseStyle;
+
     for (let r = 0; r < rows; r++) {
       const y = r * CELL_H;
       for (let c = 0; c < cols; c++) {
         const i = r * cols + c;
         const x = c * CELL_W;
-        const e = waves.length ? Math.max(energy[i], ripple(x, y)) : energy[i];
+        let e = energy[i];
+        let rv = 0;
+        if (waves.length) {
+          rv = ripple(x, y, t);
+          if (rv * WAKE > e) energy[i] = rv * WAKE;
+          if (rv > e) e = rv;
+        }
         const m = mist(x, y, t);
-        const alpha = (AMBIENT * m + e * (0.35 + 0.65 * m)) * grain[i];
+        let alpha = (AMBIENT * m + e * (0.35 + 0.65 * m)) * grain[i];
+        if (rv) alpha = Math.max(alpha, rv * WAVE_GLOW * (0.6 + 0.4 * grain[i]));
         if (alpha < 0.012) continue;
 
         if (e > 0.15 && Math.random() < e * dt * 6) chars[i] = rnd();
 
-        const k = Math.min(1, Math.max(0, (e - 0.35) / 0.5));
-        const R = BASE[0] + (ACCENT[0] - BASE[0]) * k;
-        const G = BASE[1] + (ACCENT[1] - BASE[1]) * k;
-        const B = BASE[2] + (ACCENT[2] - BASE[2]) * k;
-        ctx.fillStyle = `rgba(${R | 0},${G | 0},${B | 0},${Math.min(1, alpha).toFixed(3)})`;
+        const k = Math.min(1, Math.max((e - 0.35) / 0.5, rv * WAVE_TINT, 0));
+        let want = baseStyle;
+        if (k > 0) {
+          const R = BASE[0] + (ACCENT[0] - BASE[0]) * k;
+          const G = BASE[1] + (ACCENT[1] - BASE[1]) * k;
+          const B = BASE[2] + (ACCENT[2] - BASE[2]) * k;
+          want = `rgb(${R | 0},${G | 0},${B | 0})`;
+        }
+        if (want !== style) ctx.fillStyle = style = want;
+        ctx.globalAlpha = Math.min(1, alpha);
         ctx.fillText(chars[i], x, y);
       }
     }
+    ctx.globalAlpha = 1;
 
     if (!reduceMotion) requestAnimationFrame(frame);
   }
