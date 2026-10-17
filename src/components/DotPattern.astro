@@ -13,7 +13,7 @@
   const CELL_W    = 7.2;   // DM Mono advance at 11px
   const CELL_H    = 15;
 
-  const AMBIENT     = 0.16; // brightness of the resting vapour
+  const AMBIENT     = 0.26; // brightness of the resting vapour
   const VAPOUR_RISE = 22;   // px/s — vapour drifts upward
   const VAPOUR_CURL = 70;   // px — how strongly the vapour folds and curls
   const HOVER_R     = 110;  // px — reveal radius around cursor
@@ -21,6 +21,9 @@
   const WAVE_SPEED  = 300;  // px/s
   const WAVE_GLOW   = 0.85; // ripple brightness, independent of the vapour underneath
   const WAVE_TINT   = 1.6;  // how quickly ripple characters reach full accent colour
+  const IDLE_SWAP   = 0.25; // swaps/s per resting character (~every 4s)
+  const LIT_SWAP    = 6;    // extra swaps/s at full hover/trail brightness
+  const WAVE_SWAP   = 14;   // extra swaps/s on the ripple ring
   const WAVE_MAX    = 520;  // px — ripple has fully faded by here
   const WAVE_W      = 26;   // px — ring thickness
   const WAKE        = 0.2;  // faint smoke a ripple leaves behind (0 = none)
@@ -52,7 +55,7 @@
     chars  = Array.from({ length: n }, rnd);
     energy = new Float32Array(n);
     spare  = new Float32Array(n);
-    grain  = Float32Array.from({ length: n }, () => 0.35 + Math.random() * 0.65);
+    grain  = Float32Array.from({ length: n }, () => 0.55 + Math.random() * 0.45);
     colA = new Float32Array(cols * 4);
     rowB = new Float32Array(rows * 4);
   }
@@ -195,7 +198,7 @@
         if (rv) alpha = Math.max(alpha, rv * WAVE_GLOW * (0.6 + 0.4 * grain[i]));
         if (alpha < 0.012) continue;
 
-        if (e > 0.15 && Math.random() < e * dt * 6) chars[i] = rnd();
+        if (Math.random() < (IDLE_SWAP + e * LIT_SWAP + rv * WAVE_SWAP) * dt) chars[i] = rnd();
 
         const k = Math.min(1, Math.max((e - 0.35) / 0.5, rv * WAVE_TINT, 0));
         let want = baseStyle;
