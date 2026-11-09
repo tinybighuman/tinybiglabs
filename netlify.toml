@@ -18,3 +18,29 @@
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:"
+
+# Beanie landing pages live on their own site now. Universal Links (/bean*, /spot*)
+# still open the app when it's installed; this is the web fallback.
+[[redirects]]
+  from = "/bean"
+  to = "https://thebeanieapp.com"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/bean/*"
+  to = "https://thebeanieapp.com"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/spot"
+  to = "https://thebeanieapp.com"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/spot/*"
+  to = "https://thebeanieapp.com"
+  status = 302
+  force = true
