@@ -4,7 +4,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   padding: 4rem 1.5rem;
-  color: #e0e0e0;
+  color: var(--fog);
 }
 
 main {
@@ -23,38 +23,45 @@ header {
   flex-direction: column;
   gap: 0.5rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid #222;
+  border-bottom: 1px solid var(--line);
 }
 
-.wordmark {
-  font-family: 'iA Writer Quattro V', 'DM Mono', monospace;
-  font-size: 1rem;
-  color: #666;
+/* Horizontal lockup: symbol-to-word gap = 0.3× the symbol */
+.brand {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 1.5rem;
+  color: var(--white);
   text-decoration: none;
-  display: inline-block;
-  margin-bottom: 1rem;
-  transition: color 0.2s;
+  opacity: 0.85;
+  transition: opacity 0.2s;
 }
 
-.wordmark:hover {
-  color: #aaa;
+.brand:hover {
+  color: var(--white);
+  opacity: 1;
+}
+
+.brand .wordmark {
+  font-size: 18px;
 }
 
 h1 {
   margin: 0;
-  font-family: 'Fraunces', Georgia, serif;
-  font-style: italic;
-  font-size: 2.25rem;
-  font-weight: 300;
-  font-optical-sizing: auto;
-  color: #fff;
-  line-height: 1.2;
+  font-family: var(--quattro);
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--white);
+  line-height: 1.1;
 }
 
 .meta {
   margin: 0;
-  font-size: 0.85rem;
-  color: #555;
+  font-size: 0.75rem;
+  color: var(--vapour);
 }
 
 section {
@@ -65,39 +72,39 @@ section {
 
 h2 {
   margin: 0;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #777;
+  font-family: var(--quattro);
+  font-size: 1.25rem;
+  font-weight: 550;
+  line-height: 1.2;
+  color: var(--white);
 }
 
 p {
   margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: #bbb;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--fog);
 }
 
 a {
-  color: #aaa;
+  color: var(--violet-light);
   text-decoration: underline;
   text-underline-offset: 3px;
   transition: color 0.2s;
 }
 
 a:hover {
-  color: #fff;
+  color: var(--white);
 }
 
 footer {
   padding-top: 2rem;
-  border-top: 1px solid #222;
+  border-top: 1px solid var(--line);
 }
 
 footer p {
-  font-size: 0.85rem;
-  color: #444;
+  font-size: 0.75rem;
+  color: var(--vapour);
   line-height: 1.6;
 }
 
@@ -111,10 +118,10 @@ footer p {
 
 .contact-form input,
 .contact-form textarea {
-  background: #1c1a17;
-  border: 1px solid #2a2a2a;
-  border-radius: 6px;
-  color: #e0e0e0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--white);
   font-size: 0.9rem;
   font-family: inherit;
   padding: 0.6rem 0.85rem;
@@ -126,29 +133,28 @@ footer p {
 
 .contact-form input:focus,
 .contact-form textarea:focus {
-  border-color: #555;
+  border-color: var(--violet-light);
 }
 
 .contact-form input::placeholder,
 .contact-form textarea::placeholder {
-  color: #444;
+  color: var(--vapour);
 }
 
 .contact-form button {
   align-self: flex-start;
-  background: #201e1b;
-  border: 1px solid #333;
-  border-radius: 6px;
-  color: #ccc;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--white);
   cursor: pointer;
   font-size: 0.85rem;
   font-family: inherit;
   padding: 0.55rem 1.25rem;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .contact-form button:hover {
-  background: #2a2724;
-  border-color: #555;
-  color: #fff;
+  background: var(--surface-hover);
+  border-color: var(--violet-light);
 }

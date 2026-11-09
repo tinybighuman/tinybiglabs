@@ -9,13 +9,27 @@
   font-display: swap;
 }
 
+:root {
+  --ink: #141210;
+  --surface: #1c1a17;
+  --surface-hover: #24211d;
+  --line: rgba(255, 255, 255, 0.09);
+  --vapour: #96928a;
+  --fog: #aaaaaa;
+  --white: #ffffff;
+  --violet: #8b5cf6;
+  --violet-light: #a78bfa;
+  --quattro: 'iA Writer Quattro V', 'DM Mono', ui-monospace, monospace;
+  --mono: 'DM Mono', ui-monospace, monospace;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
   margin: 0;
   padding: 0;
   height: -webkit-fill-available;
-  background-color: #141210;
+  background-color: var(--ink);
 }
 
 body {
@@ -25,6 +39,21 @@ body {
   min-height: -webkit-fill-available;
   overflow: hidden;
   background-color: transparent;
-  font-family: 'DM Mono', monospace;
-  font-weight: 300;
+  color: var(--white);
+  font-family: var(--mono);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Wordmark: one colour, weight grows tiny → big → labs */
+.wordmark {
+  font-family: var(--quattro);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  word-spacing: -0.18em;
+  white-space: nowrap;
+  color: var(--white);
+}
+.wordmark .w1 { font-weight: 400; }
+.wordmark .w2 { font-weight: 550; }
+.wordmark .w3 { font-weight: 700; }

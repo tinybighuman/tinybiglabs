@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import Symbol from '../components/Symbol.astro';
 import '../styles/content.css';
 
 interface Props {
@@ -16,13 +17,16 @@ const { title, description = '', heading, subheading } = Astro.props;
   <main>
     <article>
       <header>
-        <a href="/" class="wordmark">tiny big labs</a>
+        <a href="/" class="brand" aria-label="Tiny Big Labs home">
+          <Symbol size={24} />
+          <span class="wordmark"><span class="w1">tiny</span> <span class="w2">big</span> <span class="w3">labs</span></span>
+        </a>
         <h1>{heading}</h1>
         {subheading && <p class="meta">{subheading}</p>}
       </header>
       <slot />
       <footer>
-        <p>Tiny Big Labs<br />London, United Kingdom</p>
+        <p>tiny big labs · made in london</p>
       </footer>
     </article>
   </main>

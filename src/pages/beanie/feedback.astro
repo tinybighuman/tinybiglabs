@@ -168,11 +168,11 @@ import ContentPage from '../../layouts/ContentPage.astro';
 
   label {
     font-size: 0.8rem;
-    color: #666;
+    color: var(--vapour);
     letter-spacing: 0.02em;
   }
 
-  .optional { color: #555; }
+  .optional { color: var(--vapour); opacity: 0.7; }
 
   .radio-group {
     display: flex;
@@ -185,12 +185,12 @@ import ContentPage from '../../layouts/ContentPage.astro';
     align-items: center;
     gap: 0.45rem;
     font-size: 0.9rem;
-    color: #bbb;
+    color: var(--fog);
     cursor: pointer;
   }
 
   .radio-label input[type="radio"] {
-    accent-color: #777;
+    accent-color: var(--violet);
     width: 1rem;
     height: 1rem;
     cursor: pointer;
@@ -199,10 +199,10 @@ import ContentPage from '../../layouts/ContentPage.astro';
   input[type="text"],
   input[type="email"],
   textarea {
-    background: #1c1a17;
-    border: 1px solid #2a2a2a;
-    border-radius: 6px;
-    color: #e0e0e0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--white);
     font-size: 0.9rem;
     font-family: inherit;
     padding: 0.6rem 0.85rem;
@@ -215,19 +215,19 @@ import ContentPage from '../../layouts/ContentPage.astro';
   input[type="text"]:focus,
   input[type="email"]:focus,
   textarea:focus {
-    border-color: #555;
+    border-color: var(--violet-light);
   }
 
   input::placeholder,
-  textarea::placeholder { color: #444; }
+  textarea::placeholder { color: var(--vapour); }
 
   .char-count {
     font-size: 0.75rem;
-    color: #444;
+    color: var(--vapour);
     text-align: right;
   }
 
-  .char-count.near-limit { color: #888; }
+  .char-count.near-limit { color: var(--fog); }
   .char-count.at-limit { color: #c0392b; }
 
   .honeypot {
@@ -239,10 +239,10 @@ import ContentPage from '../../layouts/ContentPage.astro';
 
   button[type="submit"] {
     align-self: flex-start;
-    background: #201e1b;
-    border: 1px solid #333;
-    border-radius: 6px;
-    color: #ccc;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--white);
     cursor: pointer;
     font-size: 0.85rem;
     font-family: inherit;
@@ -251,9 +251,8 @@ import ContentPage from '../../layouts/ContentPage.astro';
   }
 
   button[type="submit"]:hover:not(:disabled) {
-    background: #2a2724;
-    border-color: #555;
-    color: #fff;
+    background: var(--surface-hover);
+    border-color: var(--violet-light);
   }
 
   button[type="submit"]:disabled {

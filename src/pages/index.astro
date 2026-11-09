@@ -1,30 +1,32 @@
 ---
 import Base from '../layouts/Base.astro';
 import DotPattern from '../components/DotPattern.astro';
+import Symbol from '../components/Symbol.astro';
 ---
 
-<Base title="Tiny Big Labs" description="Tiny Big Labs">
+<Base title="Tiny Big Labs" description="Small apps that do one thing well. Made in London.">
   <DotPattern />
 
   <main>
-    <h1 class="title">
-      <span class="tiny">tiny</span>
-      <span class="big">big</span>
-      <span class="labs">labs</span>
+    <Symbol class="symbol" />
+    <h1 class="wordmark">
+      <span class="w1">tiny</span> <span class="w2">big</span> <span class="w3">labs</span>
     </h1>
   </main>
 </Base>
 
 <script>
-  // fire a background ripple from "labs" as it starts to flicker (71% into its 7s cycle)
-  const labs = document.querySelector<HTMLElement>('.labs')!;
+  // The symbol "taps" once per 7s cycle (71% in); a background ripple leaves from the hole as it does.
+  const symbol = document.querySelector<SVGSVGElement>('.symbol')!;
   const pulse = () => {
-    const r = labs.getBoundingClientRect();
-    window.dispatchEvent(new CustomEvent('bg-pulse', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 } }));
+    const r = symbol.getBoundingClientRect();
+    // hole centre sits at 32/48 on both axes of the master grid
+    const k = 32 / 48;
+    window.dispatchEvent(new CustomEvent('bg-pulse', { detail: { x: r.left + r.width * k, y: r.top + r.height * k } }));
   };
   const schedule = () => setTimeout(pulse, 7000 * 0.71);
   schedule();
-  labs.addEventListener('animationiteration', schedule);
+  symbol.addEventListener('animationiteration', schedule);
 </script>
 
 <style>
@@ -39,57 +41,36 @@ import DotPattern from '../components/DotPattern.astro';
   main {
     position: relative;
     z-index: 10;
-  }
-
-  .title {
-    margin: 0;
-    white-space: nowrap;
-    word-spacing: -0.3em;
-    font-size: 8vmin;
-    font-family: 'iA Writer Quattro V', 'DM Mono', monospace;
-    font-weight: 400;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4.25vmin;
     user-select: none;
     -webkit-user-select: none;
   }
 
-  .tiny {
-    color: #aaa;
+  main :global(.symbol) {
+    width: 15vmin;
+    height: 15vmin;
+    color: var(--white);
+    animation: symbol-tap 7s infinite;
+  }
+
+  .wordmark {
+    margin: 0;
+    font-size: 8vmin;
     font-weight: 400;
   }
 
-  .big {
-    font-weight: 550;
-    background-image: linear-gradient(to top, #fff, #bbb);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  @keyframes symbol-tap {
+    0%, 69% { transform: scale(1); }
+    71%     { transform: scale(0.93); }
+    76%     { transform: scale(1.02); }
+    82%     { transform: scale(1); }
+    100%    { transform: scale(1); }
   }
 
-  .labs {
-    display: inline-block;
-    font-weight: 700;
-    color: white;
-    text-shadow:
-      0 0 0.5vmin #fff,
-      0 0.5vmin 1.5vmin #faa,
-      0 -0.5vmin 1.5vmin #acf,
-      0 -1.5vmin 3vmin #fff,
-      0 0 10vmin #fff;
-    animation: labs-flicker 7s infinite;
-  }
-
-  @keyframes labs-flicker {
-    0%, 70%  { opacity: 1; }
-    71%  { opacity: 0.5; }
-    72%  { opacity: 1; }
-    73%  { opacity: 0.2; }
-    74%  { opacity: 0.9; }
-    75%  { opacity: 0.1; }
-    76%  { opacity: 1; }
-    77%  { opacity: 0.6; }
-    78%  { opacity: 1; }
-    79%  { opacity: 0.3; }
-    80%  { opacity: 1; }
-    100% { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) {
+    main :global(.symbol) { animation: none; }
   }
 </style>
