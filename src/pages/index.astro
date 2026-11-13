@@ -16,13 +16,12 @@ import Symbol from '../components/Symbol.astro';
 </Base>
 
 <script>
-  // The symbol "taps" once per 7s cycle (71% in); a background ripple leaves from the hole as it does.
+  // The symbol "taps" once per 7s cycle (71% in); a background ripple leaves from the nucleus as it does.
   const symbol = document.querySelector<SVGSVGElement>('.symbol')!;
   const pulse = () => {
     const r = symbol.getBoundingClientRect();
-    // hole centre sits at 32/48 on both axes of the master grid
-    const k = 32 / 48;
-    window.dispatchEvent(new CustomEvent('bg-pulse', { detail: { x: r.left + r.width * k, y: r.top + r.height * k } }));
+    // the nucleus is the centre of the atom
+    window.dispatchEvent(new CustomEvent('bg-pulse', { detail: { x: r.left + r.width / 2, y: r.top + r.height / 2 } }));
   };
   const schedule = () => setTimeout(pulse, 7000 * 0.71);
   schedule();

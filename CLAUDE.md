@@ -46,7 +46,7 @@ All pages use one of two layouts — never duplicate `<head>` content in pages d
 
 ## Typography
 
-Follows the brand guide (v1, November 2026). Fonts load once in `Base.astro`; tokens live in `:root` in `global.css`.
+Follows the brand guide (v2, November 2026, "atom symbol"). Fonts load once in `Base.astro`; tokens live in `:root` in `global.css`.
 
 | Role | Font | Weight |
 |---|---|---|
@@ -54,7 +54,7 @@ Follows the brand guide (v1, November 2026). Fonts load once in `Base.astro`; to
 | Body, UI labels, captions | DM Mono (Google Fonts) | 400 (300/500 available) |
 
 - Wordmark: `<span class="wordmark"><span class="w1">tiny</span> <span class="w2">big</span> <span class="w3">labs</span></span>`. One colour, never capitalised.
-- Symbol: `src/components/Symbol.astro` (master SVG). Never recolour the hole, rotate, or stretch it.
+- Symbol: `src/components/Symbol.astro` — the atom (three weaving orbits + nucleus), mono single-shape master SVG. Use white on dark. Never rotate, stretch, redraw, or colour orbits individually. Min 24px on screen (16px favicon only).
 
 ## Colour palette
 
@@ -66,12 +66,12 @@ Follows the brand guide (v1, November 2026). Fonts load once in `Base.astro`; to
 | `--vapour` | `#96928a` | Texture, captions, labels |
 | `--fog` | `#aaaaaa` | Body copy |
 | `--white` | `#ffffff` | Headings, wordmark, symbol |
-| `--violet` | `#8b5cf6` | Ripples, favicon tile (shapes only, <5% of screen) |
+| `--violet` | `#8b5cf6` | Ripples (shapes only, <5% of screen). Never put the logo on a violet tile |
 | `--violet-light` | `#a78bfa` | Links, focus rings (text on dark) |
 
 ## Dot pattern (DotPattern.astro)
 
-Canvas text-mist background on the landing page: a fixed grid of DM Mono characters, near-invisible at rest. The cursor reveals a fading trail; a click/tap sends an expanding ring. Every 7s the symbol on `index.astro` "taps" and dispatches a `bg-pulse` event from the hole centre (32/48 of the symbol box). Freshly revealed characters tint purple and scramble. Key constants to tweak:
+Canvas text-mist background on the landing page: a fixed grid of DM Mono characters, near-invisible at rest. The cursor reveals a fading trail; a click/tap sends an expanding ring. Every 7s the symbol on `index.astro` "taps" and dispatches a `bg-pulse` event from the nucleus (centre of the symbol box). Freshly revealed characters tint purple and scramble. Key constants to tweak:
 
 - `FONT_SIZE` / `CELL_W` / `CELL_H` — character size and grid density
 - `AMBIENT` — brightness of the resting vapour
